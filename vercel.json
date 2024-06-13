@@ -7,9 +7,6 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/questions",
-      "dest": "/api/questions.py"
-    }
+    { "src": "/api/questions", "dest": "/api/questions.py" }
   ]
 }
