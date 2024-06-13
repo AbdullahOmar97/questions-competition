@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/questions.py": {
-      "runtime": "vercel-python@0.5.0"
-    }
-  },
+  "builds": [
+    { "src": "api/questions.py", "use": "@vercel/python" }
+  ],
   "routes": [
-    {
-      "src": "/api/questions",
-      "dest": "/api/questions.py"
-    }
+    { "src": "/api/questions", "dest": "/api/questions.py" }
   ]
 }
