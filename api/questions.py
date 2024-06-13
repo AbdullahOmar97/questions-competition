@@ -1,30 +1,27 @@
 import requests
-from urllib.parse import parse_qs
 
-def handler(event, context):
+def handler(request):
     """
-    Parameters:
-    event (dict): The event data containing request parameters.
-    context (object): The context in which the function is called.
+    Handle incoming HTTP requests to fetch trivia questions from the Open Trivia Database API.
+
+    Args:
+        request (Request): The incoming HTTP request.
 
     Returns:
-    dict: A dictionary containing the HTTP status code and the response body.
+        dict: A dictionary containing the HTTP status code and the response body.
     """
-    params = event.get('queryStringParameters') or {}
+    params = request.args or {}
     amount = params.get('amount', '10')
     category = params.get('category')
 
-    # Construct the URL based on the presence of category parameter
     if category:
         url = f"https://opentdb.com/api.php?amount=10&category={category}"
     else:
         url = f"https://opentdb.com/api.php?amount={amount}"
 
-    # Fetch data from Open Trivia Database API
     response = requests.get(url)
     data = response.json()
 
-    # Check if the response contains valid questions
     if data.get("response_code") == 0:
         questions = data.get("results", [])
         question_list = [f"Q{i + 1}: {q['question']} A: {q['correct_answer']}" for i, q in enumerate(questions)]
