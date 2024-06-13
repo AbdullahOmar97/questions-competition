@@ -1,36 +1,55 @@
 import requests
+from urllib.parse import urlencode
 
-def handler(request):
-    """
-    Handle incoming HTTP requests to fetch trivia questions from the Open Trivia Database API.
+def fetch_questions(amount=None, category=None):
+    base_url = "https://opentdb.com/api.php?"
+    params = {}
 
-    Args:
-        request (Request): The incoming HTTP request.
-
-    Returns:
-        dict: A dictionary containing the HTTP status code and the response body.
-    """
-    params = request.args or {}
-    amount = params.get('amount', '10')
-    category = params.get('category')
+    if amount:
+        params['amount'] = amount
 
     if category:
-        url = f"https://opentdb.com/api.php?amount=10&category={category}"
-    else:
-        url = f"https://opentdb.com/api.php?amount={amount}"
+        params['category'] = category
 
+    url = base_url + urlencode(params)
     response = requests.get(url)
-    data = response.json()
+    return response.json()
 
-    if data.get("response_code") == 0:
-        questions = data.get("results", [])
-        question_list = [f"Q{i + 1}: {q['question']} A: {q['correct_answer']}" for i, q in enumerate(questions)]
+def handler(request):
+    params = request.args
+
+    if 'amount' in params:
+        amount = params['amount']
+        data = fetch_questions(amount=amount)
+        return format_response(data)
+
+    elif 'category' in params:
+        category = params['category']
+        data = fetch_questions(category=category)
+        return format_response(data)
+
+    else:
+        return {
+            'statusCode': 400,
+            'body': "Invalid request. Please specify 'amount' or 'category' parameter."
+        }
+
+def format_response(data):
+    response_code = data.get('response_code', -1)
+
+    if response_code == 0:
+        questions = data.get('results', [])
+        formatted_output = []
+
+        for i, question in enumerate(questions):
+            formatted_output.append(f"Q{i+1}: {question['question']} A: {question['correct_answer']}")
+
         return {
             'statusCode': 200,
-            'body': "\n".join(question_list)
+            'body': "\n".join(formatted_output)
         }
     else:
         return {
             'statusCode': 400,
-            'body': "Error fetching questions"
+            'body': f"Error: API returned response code {response_code}"
         }
